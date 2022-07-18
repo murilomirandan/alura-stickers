@@ -1,18 +1,17 @@
 ## Getting Started with Imersão Java
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+## 1. Day
+- Create an IMDb account and use the key to make some requests.
+- Setup Http Client, Request and Response.
+- Use RegEx to get the items in the body of the Http response.
+- Show the items from body response.
 
-## Folder Structure
+### Extras: 
+- User provides his/her own IMDb-key
+- User can select three different URLs (Top 250 Movies, Top 250 TVs and Most Popular Movies)
+- Exceptions handling with Try-catch (if the IMDb-key is wrong) and IMDb-Rating doesn't exist (String is empty).
 
-The workspace contains two folders by default, where:
-
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
-
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+### Problems:
+- not showing stars in terminal
+- Already tried:
+    - Select cmd as default and chcp 65001
