@@ -1,0 +1,6 @@
+.vscode
+bin/
+saida/
+lib/
+entrada/
+src/*.class
