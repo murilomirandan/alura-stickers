@@ -51,28 +51,34 @@ public class App {
 
             JsonParser parser = new JsonParser();
             List<Map<String, String>> filmsList = parser.parse(body);
-            if(option == 4){
+            if (option == 4) {
                 createStickers(filmsList);
-            }else{
+            } else {
                 showSearch(filmsList);
             }
-            
+
         } catch (Exception e) {
-            System.out.println("Key is wrong! Please, try again.");
+            System.out.println("Message: " + e.getMessage());
         }
     }
 
-    private static void createStickers(List<Map<String, String>> filmsList) throws Exception{
+    private static void createStickers(List<Map<String, String>> filmsList) throws Exception {
         var geradora = new GeradoraDeFigurinhas();
-        for (Map<String, String> film : filmsList) {  
+        for (Map<String, String> film : filmsList) {
             String urlImage = film.get("image");
-            String title  = film.get("title");
+            
+            // this split helps to get the full image, instead of the thumbnails
+            String[] split = urlImage.split("._");
+            urlImage = split[0] + ".jpg";
 
-            InputStream inputStream = new URL(urlImage).openStream() ;
+            String title = film.get("title");
+
+            InputStream inputStream = new URL(urlImage).openStream();
             String fileName = title + ".png";
 
             geradora.cria(inputStream, fileName);
             System.out.println("\u001b[1mTitle: \u001b[m" + title);
+            System.out.println("\u001b[1mImage link: \u001b[m" + urlImage);
         }
     }
 
@@ -87,9 +93,9 @@ public class App {
             if (!film.get("imDbRating").isEmpty()) {
                 int stars = (int) Math.round(Double.parseDouble(film.get("imDbRating")));
                 while (count < stars) {
-                    numberOfStars += "*"; // \u2B50 star-unicode 
+                    numberOfStars += "*"; // \u2B50 star-unicode
                     count++;
-                }  
+                }
             }
             System.out.println(numberOfStars + "\n");
 

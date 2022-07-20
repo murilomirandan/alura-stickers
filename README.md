@@ -15,3 +15,12 @@
 - not showing stars in terminal
 - Already tried:
     - Select cmd as default and chcp 65001
+
+## 2. Day
+- Use some library to manipulate images (ImageIO, Graphics2D and BufferedImage).
+    - increase image size
+    - change font (font family, size and style)
+    - add a text in the image
+
+- Read data using InputStream
+    - Manipulate image link data (instead thumbnail, full image) 

@@ -3,4 +3,4 @@ bin/
 saida/
 lib/
 entrada/
-src/*.class
+*.class
