@@ -23,4 +23,6 @@
     - add a text in the image
 
 - Read data using InputStream
-    - Manipulate image link data (instead thumbnail, full image) 
+    - Manipulate image link data (instead thumbnail, full image)
+
+![little-miss-sunshine-output](https://user-images.githubusercontent.com/2809318/179905721-a0adc24e-9185-44ac-a073-cc774ffb57bb.jpg)
