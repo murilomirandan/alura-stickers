@@ -1,78 +1,117 @@
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 public class App {
     public static void main(String[] args) throws Exception {
         Scanner input = new Scanner(System.in);
-        System.out.print("Enter your key: ");
-        String key = input.nextLine();
-        String url = null;
-        int option;
+        ContentExtractor extrator;
 
-        System.out.println(
-                "Welcome to IMDb!\nEnter 1 - Top 250 Movies\nEnter 2 - Top 250 TVs\nEnter 3 - Most Popular Movies\nEnter 4 - Create Stickers\nEnter 0 - Exit");
-        do {
-            option = input.nextInt();
-            switch (option) {
-                case 1:
-                    url = "https://imdb-api.com/en/API/Top250Movies/" + key;
-                    break;
-                case 2:
-                    url = "https://imdb-api.com/en/API/Top250TVs/" + key;
-                    break;
-                case 3:
-                    url = "https://imdb-api.com/en/API/MostPopularMovies/" + key;
-                    break;
-                case 4:
-                    url = "https://imdb-api.com/en/API/Top250Movies/" + key;
-                    break;
-                case 0:
-                    break;
-                default:
-                    System.out.println("This option is not define.");
-            }
-        } while (!(option >= 0 && option <= 4));
+        String optionDatabase = getDataBaseOption(input);
+        if (optionDatabase.isEmpty()) {
+            throw new Exception("This DataBase option was not defined.");
+        }
 
+        int optionTask = getTaskOption(input);
         input.close();
-        try {
-            URI address = URI.create(url);
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder(address).GET().build();
-            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-            String body = response.body();
 
-            JsonParser parser = new JsonParser();
-            List<Map<String, String>> filmsList = parser.parse(body);
-            if (option == 4) {
-                createStickers(filmsList);
-            } else {
-                showSearch(filmsList);
-            }
+        var http = new ClientHttp();
+        String json = http.searchData(optionDatabase);
 
-        } catch (Exception e) {
-            System.out.println("Message: " + e.getMessage());
+        if (optionDatabase.contains("imdb")) {
+            extrator = new ContentExtractorIMDb();
+        } else if (optionDatabase.contains("nasa")) {
+            extrator = new ContentExtractorNasa();
+        } else {
+            extrator = new ContentExtractorPokemon();
+        }
+        List<Content> contents = extrator.extractContent(json);
+
+        if (optionTask == 2) {
+            createStickers(contents, 10);
+        } else {
+            showSearch(contents, 10);
         }
     }
 
-    private static void createStickers(List<Map<String, String>> filmsList) throws Exception {
+    private static int getTaskOption(Scanner input) throws Exception {
+        int optionTask;
+
+        System.out.println(Messages.getString("Task.Option"));
+        do {
+            optionTask = input.nextInt();
+            if (optionTask == 0) {
+                input.close();
+                throw new Exception("User decided to exit");
+            }
+        } while (!(optionTask > 0 && optionTask <= 2));
+        return optionTask;
+    }
+
+    private static String getDataBaseOption(Scanner input) throws Exception {
+        String url = "";
+        String key;
+        int optionDatabase;
+
+        System.out.println(Messages.getString("Database.Option"));
+        do {
+            optionDatabase = input.nextInt();
+            switch (optionDatabase) {
+                case 1:
+                    key = getKey();
+                    url = "https://imdb-api.com/en/API/Top250Movies/" + key;
+                    break;
+                case 2:
+                    key = getKey();
+                    url = "https://imdb-api.com/en/API/Top250TVs/" + key;
+                    break;
+                case 3:
+                    key = getKey();
+                    url = "https://imdb-api.com/en/API/MostPopularMovies/" + key;
+                    break;
+                case 4:
+                    key = getKey();
+                    url = "https://api.nasa.gov/planetary/apod?api_key=" + key
+                            + "&start_date=2022-05-16&end_date=2022-05-21";
+                    break;
+                case 5:
+                    String nameOrNUmber = getPokemon();
+                    url = "https://pokeapi.glitch.me/v1/pokemon/" + nameOrNUmber;
+                    break;
+                case 0:
+                    input.close();
+                    throw new Exception("User decided to exit");
+                default:
+                    System.out.println("This option is not define.");
+            }
+        } while (!(optionDatabase > 0 && optionDatabase <= 5));
+        return url;
+    }
+
+    private static String getPokemon() {
+        Scanner input = new Scanner(System.in);
+        System.out.print(Messages.getString("Pokemon.Option"));
+        String nameOrNUmber = input.nextLine();
+        return nameOrNUmber;
+    }
+
+    private static String getKey() {
+        Scanner input = new Scanner(System.in);
+        System.out.print("Enter your key: ");
+        String key = input.nextLine();
+        return key;
+    }
+
+    private static void createStickers(List<Content> contents, int size) throws Exception {
+        size = contents.size() > size ? size : contents.size();
         var geradora = new GeradoraDeFigurinhas();
-        for (Map<String, String> film : filmsList) {
-            String urlImage = film.get("image");
-            
-            // this split helps to get the full image, instead of the thumbnails
-            String[] split = urlImage.split("._");
-            urlImage = split[0] + ".jpg";
 
-            String title = film.get("title");
+        for (int i = 0; i < size; i++) {
+            Content content = contents.get(i);
 
+            String urlImage = content.getUrlImage();
+            String title = content.getTitle();
             InputStream inputStream = new URL(urlImage).openStream();
             String fileName = title + ".png";
 
@@ -82,23 +121,26 @@ public class App {
         }
     }
 
-    private static void showSearch(List<Map<String, String>> filmsList) {
-        for (Map<String, String> film : filmsList) {
-            System.out.println("\u001b[1mTitle: \u001b[m" + film.get("title"));
-            System.out.println("\u001b[1mImage link: \u001b[m" + film.get("image"));
-            System.out.println("\u001b[1mIMDb Rating: \u001b[m" + film.get("imDbRating"));
+    private static void showSearch(List<Content> contents, int size) {
+        size = contents.size() > size ? size : contents.size();
 
-            int count = 0;
-            String numberOfStars = "";
-            if (!film.get("imDbRating").isEmpty()) {
-                int stars = (int) Math.round(Double.parseDouble(film.get("imDbRating")));
-                while (count < stars) {
-                    numberOfStars += "*"; // \u2B50 star-unicode
-                    count++;
-                }
-            }
-            System.out.println(numberOfStars + "\n");
+        for (int i = 0; i < size; i++) {
+            Content content = contents.get(i);
+            System.out.println("\u001b[1mTitle: \u001b[m" + content.getTitle());
+            System.out.println("\u001b[1mImage link: \u001b[m" + content.getUrlImage());
+            // System.out.println("\u001b[1mIMDb Rating: \u001b[m" +
+            // content.get("imDbRating"));
 
+            // int count = 0;
+            // String numberOfStars = "";
+            // if (!content.get("imDbRating").isEmpty()) {
+            // int stars = (int) Math.round(Double.parseDouble(content.get("imDbRating")));
+            // while (count < stars) {
+            // numberOfStars += "*"; // \u2B50 star-unicode
+            // count++;
+            // }
+            // }
+            // System.out.println(numberOfStars + "\n");
         }
     }
 }

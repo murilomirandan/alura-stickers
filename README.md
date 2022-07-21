@@ -26,3 +26,21 @@
     - Manipulate image link data (instead thumbnail, full image)
 
 ![Little Miss Sunshine Output](https://user-images.githubusercontent.com/2809318/179905721-a0adc24e-9185-44ac-a073-cc774ffb57bb.jpg)
+
+## 3. Day
+- Refactoring the project
+    1. App calls ClientHttp and ClientHttp gives the response.body back.
+    2. App sends the body to ContentExtractor (IMDb or NASA):
+        1. ContentExtractor calls JsonParser and gives the body.
+        2. JsonParser takes the body and puts each element in the Json in a List. Finally JsonParser gives this List (attributeList) to ContentExtractor.
+        3. ContentExtractor converts each element List into Content-Object and adds to another List (contents). This List is sent back to the App.
+    3. App shows the content of the new List (contents) or sends to GeradoraDeFigurinhas.
+
+## TO DO:
+    1. Import Gson or another Json Parser 
+    2. Handling Exceptions in ClientHttp
+    3. Streams and Lambda to map a list
+    4. Create a Enum for configuration (API URL and Extractors)
+[https://www.baeldung.com/java-localization-messages-formatting](Messages formatting)
+
+## 4. Day
